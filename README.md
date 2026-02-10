@@ -109,3 +109,4 @@ Oddiy matn (buyruq emas) yuborilsa — xabar saqlanadi va darhol barcha guruhlar
 - Bir nechta akkaunt
 - Statistik panel
 # Auto-sender-Logistic
+# Auto-sender-Logistic
