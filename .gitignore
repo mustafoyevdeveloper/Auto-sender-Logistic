@@ -1,0 +1,9 @@
+node_modules/
+config.json
+blacklist_auto.json
+*.session
+*.session-journal
+userbot.log
+*.log
+.env
+.DS_Store

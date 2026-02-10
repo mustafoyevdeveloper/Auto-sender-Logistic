@@ -1,0 +1,21 @@
+{
+  "name": "telegram-logistic-userbot",
+  "version": "1.0.0",
+  "description": "Telegram Userbot — logistika yuklari xabarlarini guruhlarga avtomatik tarqatish",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "auth": "node index.js --auth-only"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["telegram", "userbot", "logistics", "gramjs"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "telegram": "^2.21.0",
+    "input": "^1.0.1"
+  }
+}
