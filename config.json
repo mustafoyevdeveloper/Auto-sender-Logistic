@@ -1,0 +1,11 @@
+{
+  "API_ID": 23815034,
+  "API_HASH": "0afaa5e99d1d89e953e5da4e73ddf723",
+  "SESSION_FILE": "user.session",
+  "DELAY_MIN_SEC": 18,
+  "DELAY_MAX_SEC": 24,
+  "BATCH_DELAY_SEC": 20,
+  "LOG_FILE": false,
+  "BLACKLIST_GROUPS": [],
+  "WHITELIST_GROUPS": []
+}

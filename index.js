@@ -73,7 +73,7 @@ const BOT_REPLY_PHRASES = [
   // Emoji bilan boshlanadigan tipik javoblar
   "🛑Tarqatish to'xtatildi",
   "⚡ Jami",
-  "✔ Xabar(lar) barcha guruhlarga tarqatildi",
+  "✅ Xabarlar barcha guruhlarga tarqatildi",
 ];
 
 /** Bot javobi — buyruqlar, yordam/status matnlari va tarqatish/tasdiq xabarlari. Faqat qolgan matnlar yuk. */
@@ -302,7 +302,7 @@ async function runBroadcast(messages) {
   isBroadcasting = false;
   try {
     await client.sendMessage("me", {
-      message: `✅ Xabar(lar) barcha guruhlarga tarqatildi.\n\n📊 ${messages.length} ta xabar, ${totalSent} marta guruhga yuborildi.`,
+      message: `✅ Xabarlar barcha guruhlarga tarqatildi.\n📊 ${messages.length} ta xabar, ${totalSent} marta guruhga yuborildi.`,
     });
   } catch (err) {
     log.error("Xabar yuborishda xato:", err.message);
@@ -375,7 +375,7 @@ async function handlePrivateMessage(event) {
   if (text === "/start") {
     await event.message.reply({
       message:
-        "📝 Yuk yuborsangiz — saqlanadi.\n📤 /send — barcha yuklarni 1 marta tarqatib to'xtaydi.\n⏱️ /send10 — /send240 gacha — xabarlarni  kutib tarqatadi.\n🛑 /stop — tarqatishni to'xtatish\n📊 /status — holat va guruhlar soni",
+        "📝 Yuk yuborsangiz — saqlanadi.\n📤 /send — barcha yuklarni 1 marta tarqatib to'xtaydi.\n⏱️ /send10 — /send300 gacha — xabarlarni  kutib tarqatadi.\n🛑 /stop — tarqatishni to'xtatish\n📊 /status — holat va guruhlar soni",
     });
     return;
   }
@@ -389,7 +389,7 @@ async function handlePrivateMessage(event) {
   if (text === "/status") {
     const groups = await getTargetGroups();
     const status = isBroadcasting
-      ? "Tarqatish ishlayapti (tsiklda)."
+      ? "Tarqatish ishlayapti."
       : "Tarqatish to'xtatilgan.";
     await event.message.reply({
       message: `📊 Holat: ${status}\nGuruhlar: ${groups.length}\nSaqlangan yuklar: ${lastMessages.length} ta`,
@@ -419,9 +419,9 @@ async function handlePrivateMessage(event) {
   const sendMatch = text.match(/^\/send\/?(\d+)$/);
   if (sendMatch) {
     const delaySec = parseInt(sendMatch[1], 10);
-    if (delaySec < 10 || delaySec > 240) {
+    if (delaySec < 10 || delaySec > 300) {
       await event.message.reply({
-        message: "⏱️ Faqat 10 dan 240 raqam ishlatiladi. Masalan: /send/10",
+        message: "⏱️ Faqat 10 dan 300 raqam ishlatiladi. Masalan: /send/10",
       });
       return;
     }
@@ -459,13 +459,13 @@ async function handlePrivateMessage(event) {
   if (isBroadcasting) {
     stopRequested = true;
     await event.message.reply({
-      message: `⏹️ Yangi yuk qo'shildi. 🛑Tarqatish to'xtatildi.\n⚡ Jami saqlangan (Saved'dan): ${lastMessages.length} ta.`,
+      message: `⏹️ Yangi yuk qo'shildi. 🛑Tarqatish to'xtatildi.\n⚡ Jami saqlangan: ${lastMessages.length} ta.`,
     });
     return;
   }
 
   await event.message.reply({
-    message: `✅ Yuk qabul qilindi (${text.length} belgi).\n⚡ Jami (Saved'dan): ${lastMessages.length} ta.`,
+    message: `✅ Yuk qabul qilindi (${text.length} belgi).\n⚡ Jami : ${lastMessages.length} ta.`,
   });
 }
 
