@@ -358,6 +358,65 @@ async function runBroadcastInLoop(messages, delaySec) {
 }
 
 /**
+ * N marta tarqatish: har `delaySec` sekundda barcha xabarlarni guruhlarga yuboradi va `times` marta tugaydi.
+ * /{1-10}send{num} buyruqlar uchun.
+ */
+async function runBroadcastNTimes(messages, delaySec, times) {
+  if (isBroadcasting) {
+    log.info("Tarqatish allaqachon ishlayapti.");
+    return;
+  }
+  if (!messages || messages.length === 0) return;
+  if (!Number.isFinite(delaySec) || delaySec <= 0) return;
+  if (!Number.isFinite(times) || times <= 0) return;
+
+  isBroadcasting = true;
+  stopRequested = false;
+  log.info(
+    `N marta tarqatish boshlandi (${messages.length} ta xabar). ${times} marta, har ${delaySec}s.`
+  );
+
+  let roundsDone = 0;
+  while (!stopRequested && roundsDone < times) {
+    const groups = await getTargetGroups();
+    if (groups.length === 0) {
+      log.info("Yuboriladigan guruh qolmadi (blacklist). To'xtatildi.");
+      try {
+        await client.sendMessage("me", {
+          message: "❌ Yuboriladigan guruh qolmadi (blacklist). Tarqatish to'xtatildi.",
+        });
+      } catch (err) {
+        log.error("Xabar yuborishda xato:", err.message);
+      }
+      break;
+    }
+
+    for (const text of messages) {
+      await Promise.all(groups.map((dialog) => sendToGroup(dialog, text)));
+    }
+    roundsDone++;
+    log.info(
+      `${roundsDone}/${times}-marta tugadi: ${messages.length} ta xabar tarqatildi.`
+    );
+
+    if (stopRequested || roundsDone >= times) break;
+    await sleep(delaySec * 1000);
+  }
+
+  isBroadcasting = false;
+  log.info(`N marta tarqatish tugadi. Bajarildi: ${roundsDone}/${times}.`);
+
+  // So‘ralgan yakuniy xabar formati
+  try {
+    await client.sendMessage("me", {
+      message: `✅ Xabarlar barcha guruhlarga tarqatildi.\n📊 ${messages.length} ta xabar, ${roundsDone} marta guruhga yuborildi. kutish vaqti ${delaySec}`,
+    });
+  } catch (err) {
+    log.error("Xabar yuborishda xato:", err.message);
+  }
+}
+
+/**
  * Shaxsiy chatdagi xabarlarni qayta ishlash: buyruqlar va oddiy matn.
  * Har bir buyruqdan oldin Saved Messages dan xabarlar qayta o‘qiladi (ishga tushirilishidan oldin yuborilganlar ham).
  */
@@ -375,7 +434,7 @@ async function handlePrivateMessage(event) {
   if (text === "/start") {
     await event.message.reply({
       message:
-        "📝 Yuk yuborsangiz — saqlanadi.\n📤 /send — barcha yuklarni 1 marta tarqatib to'xtaydi.\n⏱️ /send10 — /send300 gacha — xabarlarni  kutib tarqatadi.\n🛑 /stop — tarqatishni to'xtatish\n📊 /status — holat va guruhlar soni",
+        "📝 Yuk yuborsangiz — saqlanadi.\n📤 /send — barcha yuklarni 1 marta tarqatib to'xtaydi.\n⏱️ /send10 — /send300 gacha — har N sekundda tsiklda tarqatadi.\n🔁 /[1-10]send1[0-300] — N sekund kutib, 1–10 marta tarqatadi.\n🛑 /stop — tarqatishni to'xtatish\n📊 /status — holat va guruhlar soni",
     });
     return;
   }
@@ -437,6 +496,32 @@ async function handlePrivateMessage(event) {
       message: `📤 ${toSend.length} ta yuk tarqatilmoqda, ⏱️ kutish vaqti ${delaySec}`,
     });
     runBroadcastInLoop([...toSend], delaySec);
+    return;
+  }
+
+  // N marta tarqatish: /1send240 ... /10send240 — {num} sekund kutib, {1-10} marta tarqatadi
+  const multiMatch = text.match(/^\/([1-9]|10)send\/?(\d+)$/i);
+  if (multiMatch) {
+    const times = parseInt(multiMatch[1], 10);
+    const delaySec = parseInt(multiMatch[2], 10);
+    if (delaySec < 10 || delaySec > 300) {
+      await event.message.reply({
+        message: "⏱️ Kutish vaqti 10 dan 300 gacha bo‘lsin. Masalan: /3send240",
+      });
+      return;
+    }
+    const toSend = lastMessages.map((m) => m.text).filter(Boolean);
+    if (toSend.length === 0) {
+      await event.message.reply({
+        message: "Saqlangan yuk yo'q. Avval yuk (xabar) yuboring.",
+      });
+      return;
+    }
+    stopRequested = false;
+    await event.message.reply({
+      message: `📤 ${toSend.length} ta yuk tarqatilmoqda, ⏱️ kutish vaqti ${delaySec} sekund, 🔁 Qayta tarqatishlar soni ${times} marta`,
+    });
+    runBroadcastNTimes([...toSend], delaySec, times);
     return;
   }
 
